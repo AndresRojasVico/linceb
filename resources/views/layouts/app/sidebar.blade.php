@@ -25,6 +25,10 @@
                     :current="request()->routeIs('userProjects')" wire:navigate>
                     {{ __('Proyectos') }}
                 </flux:sidebar.item>
+                <flux:sidebar.item icon="folder" :href="route('userProjects')"
+                    :current="request()->routeIs('userProjects')" wire:navigate>
+                    {{ __('Tareas pendientes') }}
+                </flux:sidebar.item>
 
             </flux:sidebar.group>
         </flux:sidebar.nav>
