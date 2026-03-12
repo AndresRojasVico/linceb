@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Dashboard')">
+<x-layouts::app :title="__('Proyectos usuario')">
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
 
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
@@ -28,6 +28,7 @@
         </div>
         <div
             class=" p-4  bg-white relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <flux:heading>Proyectos activos</flux:heading>
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Customer</flux:table.column>

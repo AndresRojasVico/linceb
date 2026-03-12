@@ -7,12 +7,15 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
+    use WithFileUploads;
 
     public string $name = '';
     public string $email = '';
+    public $photo;
 
     /**
      * Mount the component.
@@ -36,6 +39,12 @@ new #[Title('Profile settings')] class extends Component {
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
+        }
+
+        if ($this->photo) {
+            $user->update([
+                'image_path' => $this->photo->store('photos', 'public'),
+            ]);
         }
 
         $user->save();
@@ -64,13 +73,13 @@ new #[Title('Profile settings')] class extends Component {
     #[Computed]
     public function hasUnverifiedEmail(): bool
     {
-        return Auth::user() instanceof MustVerifyEmail && ! Auth::user()->hasVerifiedEmail();
+        return Auth::user() instanceof MustVerifyEmail && !Auth::user()->hasVerifiedEmail();
     }
 
     #[Computed]
     public function showDeleteUser(): bool
     {
-        return ! Auth::user() instanceof MustVerifyEmail
+        return !Auth::user() instanceof MustVerifyEmail
             || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
     }
 }; ?>
@@ -105,6 +114,15 @@ new #[Title('Profile settings')] class extends Component {
                     </div>
                 @endif
             </div>
+            {{-- imput para subir foto de perfil --}}
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-end">
+                    <flux:input wire:model="photo" :label="__('Photo')" type="file" required autocomplete="photo" />
+                </div>
+
+
+            </div>
+
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">

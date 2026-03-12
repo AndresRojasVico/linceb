@@ -11,8 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
-            Route::prefix('tasks')
+            Route::middleware(['web', 'auth'])
+                ->prefix('tasks')
                 ->group(base_path('routes/task.php'));
+
+            Route::middleware(['web', 'auth'])
+                ->prefix('userProjects')
+                ->group(base_path('routes/userProjects.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
