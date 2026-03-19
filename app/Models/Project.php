@@ -39,6 +39,7 @@ class Project extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'user_projects')
+            ->using(UserProject::class)
             ->withPivot('project_status_id', 'notes')
             ->withTimestamps();
     }

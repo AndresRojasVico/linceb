@@ -15,24 +15,25 @@
         </flux:sidebar.header>
 
         <flux:sidebar.nav>
-            <flux:sidebar.group :heading="__('Platform')" class="grid">
+            <flux:sidebar.group :heading="__('Super administrador')" class="grid">
                 <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                     wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
-
-                <flux:sidebar.item icon="folder" :href="route('userProjects')"
-                    :current="request()->routeIs('userProjects')" wire:navigate>
-                    {{ __('Proyectos') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="clipboard-document-check" :href="route('userProjects')"
-                    :current="request()->routeIs('userProjects')" wire:navigate>
-                    {{ __('Tareas pendientes') }}
-                </flux:sidebar.item>
-                <flux:sidebar.item icon="users" :href="route('team')" :current="request()->routeIs('team')"
+                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                     wire:navigate>
-                    {{ __('Equipo') }}
+                    {{ __('Empresas') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                    wire:navigate>
+                    {{ __('Usuarios') }}
+                </flux:sidebar.item>
+                <flux:sidebar.item icon="home" :href="route('files')" :current="request()->routeIs('files')"
+                    wire:navigate>
+                    {{ __('Subir ficheros') }}
+                </flux:sidebar.item>
+
             </flux:sidebar.group>
         </flux:sidebar.nav>
 

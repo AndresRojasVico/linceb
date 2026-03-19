@@ -19,14 +19,14 @@ return new class extends Migration {
             $table->string('vigente_anulada_archivada', 255)->nullable();
             $table->string('estado', 100)->nullable();
             $table->text('objeto_contratacion')->nullable();
-            $table->decimal('presupuesto_sin_impuestos', 10, 2)->nullable();
-            $table->decimal('presupuesto_con_impuestos', 10, 2)->nullable();
+            $table->decimal('presupuesto_sin_impuestos', 15, 2)->nullable();
+            $table->decimal('presupuesto_con_impuestos', 15, 2)->nullable();
             $table->text('cpv')->nullable();
             $table->string('tipo_contrato', 100)->nullable();
             $table->string('lugar_ejecucion', 100)->nullable();
             $table->string('organo_contratacion', 255)->nullable();
             $table->string('id_organo_contratacion', 50)->nullable();
-            $table->string('nif_organo_contratacion', 12)->nullable();
+            $table->string('nif_organo_contratacion', 50)->nullable();
             $table->text('enlace_perfil_contratante')->nullable();
             $table->string('tipo_administracion', 100)->nullable();
             $table->string('sistema_contratacion', 255)->nullable();

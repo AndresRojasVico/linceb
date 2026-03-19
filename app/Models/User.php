@@ -47,6 +47,7 @@ class User extends Authenticatable
     {
 
         return $this->belongsToMany(Project::class, 'user_projects')
+            ->using(UserProject::class)
             ->withPivot('project_status_id', 'notes')
             ->withTimestamps();
     }
@@ -93,4 +94,9 @@ class User extends Authenticatable
             ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
+    public function isSuperAdmin()
+    {
+        return $this->role && $this->role->name === 'Super Admin';
+    }
+
 }

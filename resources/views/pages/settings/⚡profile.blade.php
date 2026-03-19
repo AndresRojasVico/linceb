@@ -4,10 +4,12 @@ use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Str;
 
 new #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
@@ -42,9 +44,16 @@ new #[Title('Profile settings')] class extends Component {
         }
 
         if ($this->photo) {
-            $user->update([
-                'image_path' => $this->photo->store('photos', 'public'),
-            ]);
+            // Eliminar la foto antigua si existe para evitar acumulación de archivos
+            if ($user->image_path && Storage::disk('public')->exists($user->image_path)) {
+                Storage::disk('public')->delete($user->image_path);
+            }
+
+            // Generar un nombre de archivo único: profile_ID_TIMESTAMP.ext
+            $extension = $this->photo->getClientOriginalExtension();
+            $filename = 'profile_' . $user->id . '_' . time() . '.' . $extension;
+
+            $user->image_path = $this->photo->storeAs('photos', $filename, 'public');
         }
 
         $user->save();
@@ -114,13 +123,32 @@ new #[Title('Profile settings')] class extends Component {
                     </div>
                 @endif
             </div>
-            {{-- imput para subir foto de perfil --}}
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:input wire:model="photo" :label="__('Photo')" type="file" required autocomplete="photo" />
+            <div class="flex flex-col gap-4">
+                <flux:label>{{ __('Photo') }}</flux:label>
+
+                <div class="flex items-center gap-4">
+                    @if (auth()->user()->image_path)
+                        <div class="relative">
+                            <flux:avatar size="xl" src="{{ Storage::url(auth()->user()->image_path) }}" />
+                        </div>
+                    @else
+                        <div
+                            class="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
+                            <flux:icon icon="user" class="w-10 h-10 text-zinc-400" />
+                        </div>
+                    @endif
+
+                    <div class="flex-1">
+                        <flux:input wire:model="photo" type="file" autocomplete="photo" />
+                        <flux:text size="sm" class="mt-2">
+                            {{ __('Formatos aceptados: JPG, PNG. Max 1MB.') }}
+                        </flux:text>
+                    </div>
                 </div>
 
-
+                @error('photo')
+                    <flux:error>{{ $message }}</flux:error>
+                @enderror
             </div>
 
 

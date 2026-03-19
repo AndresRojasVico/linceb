@@ -18,10 +18,17 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware(['web', 'auth'])
                 ->prefix('userProjects')
                 ->group(base_path('routes/userProjects.php'));
+
+            Route::middleware(['web', 'auth', 'superadmin'])
+                ->prefix('sadmin')
+                ->group(base_path('routes/sadmin.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Registramos el alias aquí:
+        $middleware->alias([
+            'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

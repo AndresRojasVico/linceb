@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class UserProject extends Model
+class UserProject extends Pivot
 {
     protected $fillable = [
         'user_id',
