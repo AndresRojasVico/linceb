@@ -21,12 +21,12 @@
                     {{ __('Dashboard') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="folder" :href="route('userProjects')"
-                    :current="request()->routeIs('userProjects')" wire:navigate>
+                <flux:sidebar.item icon="folder" :href="route('Projects')"
+                    :current="request()->routeIs('Projects')" wire:navigate>
                     {{ __('Proyectos') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="clipboard-document-check" :href="route('userProjects')"
-                    :current="request()->routeIs('userProjects')" wire:navigate>
+                <flux:sidebar.item icon="clipboard-document-check" :href="route('Projects')"
+                    :current="request()->routeIs('Projects')" wire:navigate>
                     {{ __('Tareas pendientes') }}
                 </flux:sidebar.item>
                 <flux:sidebar.item icon="users" :href="route('team')" :current="request()->routeIs('team')"

@@ -16,8 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/task.php'));
 
             Route::middleware(['web', 'auth'])
-                ->prefix('userProjects')
-                ->group(base_path('routes/userProjects.php'));
+                ->prefix('projects')
+                ->group(base_path('routes/projects.php'));
 
             Route::middleware(['web', 'auth', 'superadmin'])
                 ->prefix('sadmin')
