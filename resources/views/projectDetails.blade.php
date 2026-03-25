@@ -1,10 +1,8 @@
 <x-layouts::app :title="__('Detalles del Proyecto')">
     @php
-        $enPlazo = $proyecto->fecha_presentacion && \Carbon\Carbon::parse($proyecto->fecha_presentacion)->isFuture();
         $diasRestantes = $proyecto->fecha_presentacion
             ? (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($proyecto->fecha_presentacion), false)
             : null;
-        $situacion = $proyecto->vigente_anulada_archivada ?? null;
         $duracionTexto = null;
         if ($proyecto->duracion_contrato) {
             $unidad = match($proyecto->unidad_duracion ?? '') {
@@ -19,6 +17,24 @@
             $proyecto->link,
             $proyecto->plataforma_origen,
         ])->filter()->count();
+
+        // Badge estado (igual lógica que project-card)
+        $estado = $proyecto->estado ?? 'ABIERTA';
+        $estadoClass = match(true) {
+            str_contains(strtolower($estado), 'adjudic') => 'bg-blue-100 text-blue-700',
+            str_contains(strtolower($estado), 'urgente') => 'bg-amber-100 text-amber-700',
+            default => 'bg-green-100 text-green-700',
+        };
+
+        // Badge tipo contrato (igual lógica que project-card)
+        $tipo = strtolower($proyecto->tipo_contrato ?? '');
+        [$tipoColor, $tipoIcon] = match(true) {
+            str_contains($tipo, 'servicio')                                         => ['bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 'briefcase'],
+            str_contains($tipo, 'suministro')                                       => ['bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300', 'cube'],
+            str_contains($tipo, 'obra')                                             => ['bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300', 'wrench-screwdriver'],
+            str_contains($tipo, 'concesion') || str_contains($tipo, 'concesión')    => ['bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300', 'building-library'],
+            default                                                                  => ['bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300', 'tag'],
+        };
     @endphp
 
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
@@ -29,33 +45,30 @@
             <div class="p-6 border-b border-neutral-200 dark:border-neutral-700">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            @if($enPlazo)
-                                <span class="inline-block px-3 py-1 rounded text-xs font-bold uppercase bg-blue-600 text-white tracking-wide">EN PLAZO</span>
-                            @elseif($situacion === 'VIGENTE')
-                                <span class="inline-block px-3 py-1 rounded text-xs font-bold uppercase bg-green-600 text-white tracking-wide">VIGENTE</span>
-                            @elseif($situacion === 'ANULADA')
-                                <span class="inline-block px-3 py-1 rounded text-xs font-bold uppercase bg-red-600 text-white tracking-wide">ANULADA</span>
-                            @elseif($situacion === 'ARCHIVADA')
-                                <span class="inline-block px-3 py-1 rounded text-xs font-bold uppercase bg-neutral-500 text-white tracking-wide">ARCHIVADA</span>
+                        <div class="flex items-center gap-2 mb-2 flex-wrap">
+                            <span class="text-xs font-bold uppercase tracking-wide px-2 py-1 rounded-full {{ $estadoClass }}">
+                                {{ strtoupper($estado) }}
+                            </span>
+                            @if($proyecto->tipo_contrato)
+                                <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full {{ $tipoColor }}">
+                                    <flux:icon :icon="$tipoIcon" class="size-3" />
+                                    {{ $proyecto->tipo_contrato }}
+                                </span>
                             @endif
                             <span class="text-sm text-neutral-500">Expediente: {{ $proyecto->expediente ?? '—' }}</span>
                         </div>
 
                         <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{{ $proyecto->sumario ?? 'Proyecto sin sumario' }}</h1>
 
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <flux:button variant="primary" size="sm">
+                                Presentar oferta
+                            </flux:button>
                             @if($proyecto->url_ppt)
-                                <a href="{{ $proyecto->url_ppt }}" target="_blank"
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-neutral-300 text-sm font-semibold text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50 transition uppercase tracking-wide dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800">
-                                    <flux:icon.document-text class="size-4" />
+                                <flux:button size="sm" href="{{ $proyecto->url_ppt }}" target="_blank">
                                     Pliego
-                                </a>
+                                </flux:button>
                             @endif
-                            <button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-sm font-semibold text-white transition uppercase tracking-wide">
-                                <flux:icon.paper-airplane class="size-4" />
-                                Presentar Oferta
-                            </button>
                         </div>
                     </div>
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-1 text-sm text-blue-600 hover:underline shrink-0">
@@ -117,12 +130,10 @@
                             <div class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
                             <div>
                                 <p class="text-xs text-neutral-400 uppercase tracking-wide">Plazo presentación</p>
-                                <p class="font-semibold text-sm">{{ \Carbon\Carbon::parse($proyecto->fecha_presentacion)->format('d/m/Y H:i') }}</p>
-                                @if($diasRestantes !== null && $diasRestantes >= 0)
-                                    <p class="text-xs text-orange-500 font-medium">Faltan {{ $diasRestantes }} días</p>
-                                @elseif($diasRestantes !== null && $diasRestantes < 0)
-                                    <p class="text-xs text-red-500 font-medium">Plazo finalizado</p>
-                                @endif
+                                <div class="flex items-center gap-1 text-sm mt-0.5">
+                                    <flux:icon.calendar-days class="size-4 text-neutral-400 shrink-0" />
+                                    <x-fecha-presentacion :fecha="$proyecto->fecha_presentacion" />
+                                </div>
                             </div>
                         </div>
                         @endif
