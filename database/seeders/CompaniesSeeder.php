@@ -12,7 +12,7 @@ class CompaniesSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('companies')->insert([
+        DB::table('companies')->upsert([
             [
                 'name' => 'Empresa 1',
                 'created_at' => now(),
@@ -26,6 +26,6 @@ class CompaniesSeeder extends Seeder
                 'nif' => '987654321',
             ],
 
-        ]);
+        ], ['nif'], ['name', 'updated_at']);
     }
 }

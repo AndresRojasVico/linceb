@@ -72,28 +72,136 @@ class AtomDataExtractionService
      * Incluye equipos informáticos, redes, software e instalaciones TIC.
      */
     private const CPV_PERMITIDOS = [
-        '30000000', '30100000', '30120000', '30121100', '30123000', '30123100',
-        '30140000', '30141000', '30141100', '30141200', '30141300', '30150000',
-        '30151000', '30170000', '30172000', '30190000', '30191000', '30191400',
-        '30192000', '30192100', '30192200', '30192300', '30192400', '30192500',
-        '30192600', '30192700', '30192800', '30192900', '30193000', '30193100',
-        '30193200', '30197000', '30197100', '30197200', '30197300', '30197400',
-        '30197500', '30197600', '30199000', '30199100', '30199200', '30199300',
-        '30199400', '30199500', '30199600', '30199700', '30200000', '30210000',
-        '30211000', '30211100', '30211200', '30211300', '30211400', '30211500',
-        '30212000', '30212100', '30213000', '30213100', '30213200', '30213300',
-        '30213400', '30213500', '30214000', '30215000', '30215100', '30216000',
-        '30216100', '30230000', '30231000', '30231100', '30231200', '30231300',
-        '30232000', '30232100', '30233000', '30233100', '30233300', '30234000',
-        '30234100', '30234200', '30234300', '30234400', '30234500', '30234600',
-        '30234700', '30236000', '30236100', '30236200', '30237000', '30237100',
-        '30237200', '30237300', '30237400', '32000000', '32200000', '32250000',
-        '32251000', '32251100', '32252000', '32252100', '32300000', '32320000',
-        '32340000', '32341000', '32342000', '32342100', '32342200', '32342300',
-        '32400000', '32410000', '32420000', '32421000', '32422000', '32423000',
-        '32424000', '48000000', '51000000', '51600000', '51610000', '51611000',
-        '51611100', '51612000', '72000000', '72100000', '72200000', '72400000',
-        '72500000', '72600000', '72700000', '72900000',
+        '30000000',
+        '30100000',
+        '30120000',
+        '30121100',
+        '30123000',
+        '30123100',
+        '30140000',
+        '30141000',
+        '30141100',
+        '30141200',
+        '30141300',
+        '30150000',
+        '30151000',
+        '30170000',
+        '30172000',
+        '30190000',
+        '30191000',
+        '30191400',
+        '30192000',
+        '30192100',
+        '30192200',
+        '30192300',
+        '30192400',
+        '30192500',
+        '30192600',
+        '30192700',
+        '30192800',
+        '30192900',
+        '30193000',
+        '30193100',
+        '30193200',
+        '30197000',
+        '30197100',
+        '30197200',
+        '30197300',
+        '30197400',
+        '30197500',
+        '30197600',
+        '30199000',
+        '30199100',
+        '30199200',
+        '30199300',
+        '30199400',
+        '30199500',
+        '30199600',
+        '30199700',
+        '30200000',
+        '30210000',
+        '30211000',
+        '30211100',
+        '30211200',
+        '30211300',
+        '30211400',
+        '30211500',
+        '30212000',
+        '30212100',
+        '30213000',
+        '30213100',
+        '30213200',
+        '30213300',
+        '30213400',
+        '30213500',
+        '30214000',
+        '30215000',
+        '30215100',
+        '30216000',
+        '30216100',
+        '30230000',
+        '30231000',
+        '30231100',
+        '30231200',
+        '30231300',
+        '30232000',
+        '30232100',
+        '30233000',
+        '30233100',
+        '30233300',
+        '30234000',
+        '30234100',
+        '30234200',
+        '30234300',
+        '30234400',
+        '30234500',
+        '30234600',
+        '30234700',
+        '30236000',
+        '30236100',
+        '30236200',
+        '30237000',
+        '30237100',
+        '30237200',
+        '30237300',
+        '30237400',
+        '32000000',
+        '32200000',
+        '32250000',
+        '32251000',
+        '32251100',
+        '32252000',
+        '32252100',
+        '32300000',
+        '32320000',
+        '32340000',
+        '32341000',
+        '32342000',
+        '32342100',
+        '32342200',
+        '32342300',
+        '32400000',
+        '32410000',
+        '32420000',
+        '32421000',
+        '32422000',
+        '32423000',
+        '32424000',
+        '48000000',
+        '51000000',
+        '51600000',
+        '51610000',
+        '51611000',
+        '51611100',
+        '51612000',
+        '72000000',
+        '72100000',
+        '72200000',
+        '72400000',
+        '72500000',
+        '72600000',
+        '72700000',
+        '72900000',
     ];
 
     // -------------------------------------------------------------------------
@@ -117,11 +225,33 @@ class AtomDataExtractionService
             // getNamespaces(true) recorre el árbol completo y devuelve TODOS los prefijos
             $ns = $xml->getNamespaces(true);
 
-            $data = [];
-            foreach ($xml->entry as $entry) {
-                $extracted = $this->extractEntry($entry, $ns);
-                if ($extracted !== null) {
-                    $data[] = $extracted;
+            // Intentar con namespace atom explícito si el acceso directo no da entries
+            $entries = $xml->entry;
+            if (empty($entries) || count($entries) === 0) {
+                $atomNs = $ns['atom'] ?? 'http://www.w3.org/2005/Atom';
+                $entries = $xml->children($atomNs)->entry;
+            }
+
+            $data          = [];
+            $totalEntradas = 0;
+            $sinCpv        = 0;
+            $omitidos      = 0;
+            $primerError   = null;
+
+            foreach ($entries as $entry) {
+                $totalEntradas++;
+                try {
+                    $extracted = $this->extractEntry($entry, $ns);
+                    if ($extracted !== null) {
+                        $data[] = $extracted;
+                    } else {
+                        $sinCpv++;
+                    }
+                } catch (\Throwable $e) {
+                    $omitidos++;
+                    if ($primerError === null) {
+                        $primerError = $e->getMessage() . ' en ' . basename($e->getFile()) . ':' . $e->getLine();
+                    }
                 }
             }
 
@@ -139,10 +269,14 @@ class AtomDataExtractionService
                 }
             }
 
-            return [
-                'success' => true,
-                'message' => "Base de datos actualizada correctamente. $registrosNuevos nuevos, $registrosActualizados actualizados.",
-            ];
+            $msg = "Proceso completado. Entradas en el XML: $totalEntradas | "
+                 . "Sin CPV TIC: $sinCpv | Con errores: $omitidos | "
+                 . "Nuevos: $registrosNuevos | Actualizados: $registrosActualizados.";
+            if ($primerError !== null) {
+                $msg .= " | Error: $primerError";
+            }
+
+            return ['success' => true, 'message' => $msg];
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -176,17 +310,13 @@ class AtomDataExtractionService
             return null;
         }
 
-        // --- Identificador y campos básicos del entry ---
-        $rawId = (string) $entry->id;
-        preg_match('/(\d+)$/', $rawId, $m);
-        $identificador = $m[1] ?? $rawId;
-
+        // --- Campos básicos del entry ---
         $link        = $this->getSafeNode($entry, 'link', 'href');
         $summary     = (string) $entry->summary;
         $fechaUpdate = $this->formatDate((string) $entry->updated);
 
         // --- Estado ---
-        $estadoCod = (string) $cfs->children($ns['cbc-place-ext'])->ContractFolderStatusCode;
+        $estadoCod = (string) $cfs->children($ns['cbc-place-ext'] ?? '')->ContractFolderStatusCode;
         $estado    = self::ESTADO_MAPPING[$estadoCod] ?? 'DESCONOCIDO';
 
         // --- Expediente y objeto del contrato ---
@@ -207,9 +337,10 @@ class AtomDataExtractionService
         $importeConIva      = $this->parseAmount((string) $budget->children($ns['cbc'])->TotalAmount);
 
         // --- Duración ---
-        $duracionNode    = $project->children($ns['cac'])->PlannedPeriod->children($ns['cbc'])->DurationMeasure;
-        $duracionContrato = (string) $duracionNode ?: null;
-        $unidadDuracion  = isset($duracionNode['unitCode']) ? (string) $duracionNode['unitCode'] : null; // ANN | MON | DAY
+        $plannedPeriod   = $project->children($ns['cac'] ?? '')->PlannedPeriod;
+        $duracionNode    = $plannedPeriod ? $plannedPeriod->children($ns['cbc'] ?? '')->DurationMeasure : null;
+        $duracionContrato = $duracionNode ? ((string) $duracionNode ?: null) : null;
+        $unidadDuracion  = ($duracionNode && isset($duracionNode['unitCode'])) ? (string) $duracionNode['unitCode'] : null; // ANN | MON | DAY
 
         // --- Lugar de ejecución: RealizedLocation del proyecto (no dirección del órgano) ---
         $lugarEjecucion = $this->extractLugarEjecucion($project, $ns);
@@ -236,9 +367,10 @@ class AtomDataExtractionService
             ?: $link;
 
         // Plataforma de origen: AgentParty presente en PlataformasAgregadas, ausente en Completo3
-        $agentName       = (string) $party->children($ns['cac'])->AgentParty
-            ->children($ns['cac'])->PartyName
-            ->children($ns['cbc'])->Name;
+        $agentParty = $party->children($ns['cac'] ?? '')->AgentParty ?? null;
+        $agentName  = $agentParty
+            ? (string) $agentParty->children($ns['cac'] ?? '')->PartyName->children($ns['cbc'] ?? '')->Name
+            : '';
         $plataformaOrigen = $agentName ?: 'PLACSP';
 
         // --- TenderingTerms ---
@@ -246,8 +378,11 @@ class AtomDataExtractionService
 
         $financiacionEuropea    = $this->extractFundingProgramCodes($terms, $ns);
         $descripcionFinanciacion = (string) $terms->children($ns['cbc'])->FundingProgram ?: null;
-        $directivaAplicacion    = (string) $terms->children($ns['cac'])
-            ->ProcurementLegislationDocumentReference->children($ns['cbc'])->ID ?: null;
+        $legDocRef           = $terms->children($ns['cac'] ?? '')->ProcurementLegislationDocumentReference ?? null;
+        $legDocRefCbc        = $legDocRef ? $legDocRef->children($ns['cbc'] ?? '') : null;
+        $directivaAplicacion = $legDocRefCbc ? ((string) $legDocRefCbc->ID ?: null) : null;
+
+        $urlPpt = $this->extractTechnicalDocumentUri($terms, $ns);
 
         // --- TenderingProcess ---
         $process = $cfs->children($ns['cac'])->TenderingProcess;
@@ -268,13 +403,13 @@ class AtomDataExtractionService
         $sobreUmbral    = $sobreUmbralRaw !== '' ? filter_var($sobreUmbralRaw, FILTER_VALIDATE_BOOLEAN) : null;
 
         // Fechas del proceso
-        $fechaMaximaPresentacion = (string) $process
-            ->children($ns['cac'])->TenderSubmissionDeadlinePeriod
-            ->children($ns['cbc'])->EndDate ?: null;
+        $deadlinePeriod          = $process->children($ns['cac'] ?? '')->TenderSubmissionDeadlinePeriod ?? null;
+        $deadlineCbc             = $deadlinePeriod ? $deadlinePeriod->children($ns['cbc'] ?? '') : null;
+        $fechaMaximaPresentacion = $deadlineCbc ? ((string) $deadlineCbc->EndDate ?: null) : null;
 
-        $fechaSolicitud = (string) $process
-            ->children($ns['cac'])->DocumentAvailabilityPeriod
-            ->children($ns['cbc'])->EndDate ?: null;
+        $availabilityPeriod = $process->children($ns['cac'] ?? '')->DocumentAvailabilityPeriod ?? null;
+        $availabilityCbc    = $availabilityPeriod ? $availabilityPeriod->children($ns['cbc'] ?? '') : null;
+        $fechaSolicitud     = $availabilityCbc ? ((string) $availabilityCbc->EndDate ?: null) : null;
 
         // --- Fecha de publicación (primera ValidNoticeInfo de tipo DOC_CN o DOC_CD) ---
         $fechaPublicacion = $this->extractFechaPublicacion($cfs, $ns);
@@ -290,7 +425,11 @@ class AtomDataExtractionService
             'fecha_updated'               => $fechaUpdate,
             'fecha_publicacion'           => $fechaPublicacion,
             'fecha_presentacion'          => $fechaMaximaPresentacion,
-            'vigente_anulada_archivada'   => 'desconocido',
+            'vigente_anulada_archivada'   => match($estadoCod) {
+                'ANU'          => 'ANULADA',
+                'ARC'          => 'ARCHIVADA',
+                default        => 'VIGENTE',
+            },
             'estado'                      => $estado,
             'organo_contratacion'         => $organoContratacion,
             'objeto_contratacion'         => $objetoContrato,
@@ -309,6 +448,7 @@ class AtomDataExtractionService
             'directiva_aplicacion'        => $directivaAplicacion,
             'financiacion_europea'        => $financiacionEuropea,
             'descripcion_financiacion'    => $descripcionFinanciacion,
+            'url_ppt'                     => $urlPpt,
             'subcontratacion_permitido'   => null, // No disponible en el esquema CODICE
             'subcontratacion_porcentaje'  => null,
             // Campos nuevos — añadir a la migración si no existen
@@ -319,7 +459,7 @@ class AtomDataExtractionService
             'codigo_nuts'                 => $codigoNuts,
             'procedimiento'               => $procedimiento,
             'sobre_umbral'                => $sobreUmbral,
-            'cpv_codigos'                 => json_encode($cpvMatched), // array JSON de CPVs que coinciden
+            'cpv'                         => json_encode($cpvMatched),
             'plataforma_origen'           => $plataformaOrigen,
             // Adjudicación (null cuando el contrato aún no está adjudicado)
             'fecha_adjudicacion'          => $adjudicacion['fecha_adjudicacion'],
@@ -344,11 +484,12 @@ class AtomDataExtractionService
     private function extractCpvCodes(\SimpleXMLElement $project, array $ns): array
     {
         $codes = [];
-        foreach ($project->children($ns['cac']) as $nodeName => $node) {
+        foreach ($project->children($ns['cac'] ?? '') as $nodeName => $node) {
             if ($nodeName !== 'RequiredCommodityClassification') {
                 continue;
             }
-            $code = (string) $node->children($ns['cbc'])->ItemClassificationCode;
+            $cbcNode = $node->children($ns['cbc'] ?? '');
+            $code    = $cbcNode ? (string) $cbcNode->ItemClassificationCode : '';
             if ($code !== '') {
                 $codes[] = $code;
             }
@@ -363,8 +504,15 @@ class AtomDataExtractionService
     private function extractPartyIdentifications(\SimpleXMLElement $party, array $ns): array
     {
         $ids = [];
-        foreach ($party->children($ns['cac'])->PartyIdentification as $pi) {
-            $idNode = $pi->children($ns['cbc'])->ID;
+        foreach ($party->children($ns['cac'] ?? '') as $nodeName => $piNode) {
+            if ($nodeName !== 'PartyIdentification') {
+                continue;
+            }
+            $cbcChildren = $piNode->children($ns['cbc'] ?? '');
+            if ($cbcChildren === null) {
+                continue;
+            }
+            $idNode = $cbcChildren->ID;
             if ($idNode === null) {
                 continue;
             }
@@ -385,12 +533,13 @@ class AtomDataExtractionService
      */
     private function extractLugarEjecucion(\SimpleXMLElement $project, array $ns): string
     {
-        $location = $project->children($ns['cac'])->RealizedLocation;
-        $lugar    = (string) $location->children($ns['cbc'])->CountrySubentity;
-        if ($lugar !== '') {
-            return $lugar;
+        $location    = $project->children($ns['cac'] ?? '')->RealizedLocation ?? null;
+        $cbcLocation = $location ? $location->children($ns['cbc'] ?? '') : null;
+        if (!$cbcLocation) {
+            return 'dato no disponible';
         }
-        return (string) $location->children($ns['cbc'])->CountrySubentityCode ?: 'dato no disponible';
+        $lugar = (string) $cbcLocation->CountrySubentity;
+        return $lugar !== '' ? $lugar : ((string) $cbcLocation->CountrySubentityCode ?: 'dato no disponible');
     }
 
     /**
@@ -398,9 +547,9 @@ class AtomDataExtractionService
      */
     private function extractNuts(\SimpleXMLElement $project, array $ns): ?string
     {
-        $code = (string) $project->children($ns['cac'])->RealizedLocation
-            ->children($ns['cbc'])->CountrySubentityCode;
-        return $code ?: null;
+        $location    = $project->children($ns['cac'] ?? '')->RealizedLocation ?? null;
+        $cbcLocation = $location ? $location->children($ns['cbc'] ?? '') : null;
+        return $cbcLocation ? ((string) $cbcLocation->CountrySubentityCode ?: null) : null;
     }
 
     /**
@@ -409,8 +558,9 @@ class AtomDataExtractionService
      */
     private function extractFundingProgramCodes(\SimpleXMLElement $terms, array $ns): ?string
     {
-        $codes = [];
-        foreach ($terms->children($ns['cbc']) as $nodeName => $node) {
+        $codes       = [];
+        $cbcChildren = $terms->children($ns['cbc'] ?? '');
+        foreach (($cbcChildren ?? []) as $nodeName => $node) {
             if ($nodeName === 'FundingProgramCode') {
                 $val = (string) $node;
                 if ($val !== '') {
@@ -419,6 +569,29 @@ class AtomDataExtractionService
             }
         }
         return $codes ? implode(', ', array_unique($codes)) : null;
+    }
+
+    /**
+     * Extrae la URI del TechnicalDocumentReference (URL de descarga del PPT).
+     * Ruta: TenderingTerms > cac:TechnicalDocumentReference > cac:Attachment
+     *       > cac:ExternalReference > cbc:URI
+     */
+    private function extractTechnicalDocumentUri(\SimpleXMLElement $terms, array $ns): ?string
+    {
+        $techDocRef = $terms->children($ns['cac'] ?? '')->TechnicalDocumentReference ?? null;
+        if (!$techDocRef) {
+            return null;
+        }
+        $attachment = $techDocRef->children($ns['cac'] ?? '')->Attachment ?? null;
+        if (!$attachment) {
+            return null;
+        }
+        $extRef = $attachment->children($ns['cac'] ?? '')->ExternalReference ?? null;
+        if (!$extRef) {
+            return null;
+        }
+        $uri = (string) $extRef->children($ns['cbc'] ?? '')->URI;
+        return $uri !== '' ? $uri : null;
     }
 
     /**
@@ -434,11 +607,11 @@ class AtomDataExtractionService
                 continue;
             }
 
-            $typeCode  = (string) $notice->children($ns['cbc-place-ext'])->NoticeTypeCode;
-            $pubStatus = $notice->children($ns['cac-place-ext'])->AdditionalPublicationStatus;
-            $date      = (string) $pubStatus
-                ->children($ns['cac-place-ext'])->AdditionalPublicationDocumentReference
-                ->children($ns['cbc'])->IssueDate;
+            $typeCode  = (string) $notice->children($ns['cbc-place-ext'] ?? '')->NoticeTypeCode;
+            $pubStatus = $notice->children($ns['cac-place-ext'] ?? '')->AdditionalPublicationStatus ?? null;
+            $docRef    = $pubStatus ? $pubStatus->children($ns['cac-place-ext'] ?? '')->AdditionalPublicationDocumentReference ?? null : null;
+            $docRefCbc = $docRef ? $docRef->children($ns['cbc'] ?? '') : null;
+            $date      = $docRefCbc ? (string) $docRefCbc->IssueDate : '';
 
             if ($date === '') {
                 continue;
@@ -476,35 +649,41 @@ class AtomDataExtractionService
             'pyme'               => null,
         ];
 
-        $tr = $cfs->children($ns['cac'])->TenderResult;
-
-        // Si no existe el nodo o no tiene fecha de adjudicación, no hay datos
-        $awardDate = (string) $tr->children($ns['cbc'])->AwardDate;
+        $tr        = $cfs->children($ns['cac'] ?? '')->TenderResult ?? null;
+        $trCbc     = $tr ? $tr->children($ns['cbc'] ?? '') : null;
+        $awardDate = $trCbc ? (string) $trCbc->AwardDate : '';
         if (!$tr || $awardDate === '') {
             return $result;
         }
 
         $result['fecha_adjudicacion'] = $awardDate;
 
-        $qty = (string) $tr->children($ns['cbc'])->ReceivedTenderQuantity;
+        $qty = (string) $trCbc->ReceivedTenderQuantity;
         $result['num_ofertas'] = is_numeric($qty) ? (int) $qty : null;
 
-        $qtyPyme = (string) $tr->children($ns['cbc'])->SMEsReceivedTenderQuantity;
+        $qtyPyme = (string) $trCbc->SMEsReceivedTenderQuantity;
         $result['num_ofertas_pyme'] = is_numeric($qtyPyme) ? (int) $qtyPyme : null;
 
-        $pymeRaw = (string) $tr->children($ns['cbc'])->SMEAwardedIndicator;
+        $pymeRaw = (string) $trCbc->SMEAwardedIndicator;
         $result['pyme'] = $pymeRaw !== '' ? filter_var($pymeRaw, FILTER_VALIDATE_BOOLEAN) : null;
 
         // Empresa adjudicataria
-        $winningParty = $tr->children($ns['cac'])->WinningParty;
+        $winningParty = $tr->children($ns['cac'] ?? '')->WinningParty ?? null;
         if ($winningParty) {
-            $result['empresa'] = (string) $winningParty
-                ->children($ns['cac'])->PartyName
-                ->children($ns['cbc'])->Name ?: null;
+            $wpPartyName = $winningParty->children($ns['cac'] ?? '')->PartyName ?? null;
+            $wpNameCbc   = $wpPartyName ? $wpPartyName->children($ns['cbc'] ?? '') : null;
+            $result['empresa'] = $wpNameCbc ? ((string) $wpNameCbc->Name ?: null) : null;
 
             // Buscar NIF específicamente entre los PartyIdentification del adjudicatario
-            foreach ($winningParty->children($ns['cac'])->PartyIdentification as $pi) {
-                $idNode = $pi->children($ns['cbc'])->ID;
+            foreach ($winningParty->children($ns['cac'] ?? '') as $nodeName => $piNode) {
+                if ($nodeName !== 'PartyIdentification') {
+                    continue;
+                }
+                $cbcChildren = $piNode->children($ns['cbc'] ?? '');
+                if ($cbcChildren === null) {
+                    continue;
+                }
+                $idNode = $cbcChildren->ID;
                 if ($idNode === null) {
                     continue;
                 }
@@ -516,23 +695,21 @@ class AtomDataExtractionService
             }
             // Fallback: primer identificador disponible si no hay NIF
             if ($result['nif'] === null) {
-                $result['nif'] = (string) $winningParty
-                    ->children($ns['cac'])->PartyIdentification
-                    ->children($ns['cbc'])->ID ?: null;
+                $piFirst    = $winningParty->children($ns['cac'] ?? '')->PartyIdentification ?? null;
+                $piFirstCbc = $piFirst ? $piFirst->children($ns['cbc'] ?? '') : null;
+                $result['nif'] = $piFirstCbc ? ((string) $piFirstCbc->ID ?: null) : null;
             }
         }
 
         // Importes adjudicados
-        $monetary = $tr->children($ns['cac'])->AwardedTenderedProject
-            ->children($ns['cac'])->LegalMonetaryTotal;
+        $awardedProject = $tr->children($ns['cac'] ?? '')->AwardedTenderedProject ?? null;
+        $monetary       = $awardedProject ? $awardedProject->children($ns['cac'] ?? '')->LegalMonetaryTotal ?? null : null;
         if ($monetary) {
-            $result['importe_sin_iva'] = $this->parseAmount(
-                (string) $monetary->children($ns['cbc'])->TaxExclusiveAmount
-            );
-            // PayableAmount es el importe con IVA en LegalMonetaryTotal
-            $result['importe_con_iva'] = $this->parseAmount(
-                (string) $monetary->children($ns['cbc'])->PayableAmount
-            );
+            $monetaryCbc = $monetary->children($ns['cbc'] ?? '');
+            if ($monetaryCbc) {
+                $result['importe_sin_iva'] = $this->parseAmount((string) $monetaryCbc->TaxExclusiveAmount);
+                $result['importe_con_iva'] = $this->parseAmount((string) $monetaryCbc->PayableAmount);
+            }
         }
 
         return $result;

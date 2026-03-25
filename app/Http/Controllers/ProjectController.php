@@ -6,16 +6,16 @@ use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
 
     /**
-     * Lista todos los proyectos asignados al usuario autenticado,
-     * incluyendo el estado y notas del pivot user_projects.
-     */
-    /**
-     * Lista todos los proyectos de la tabla projects.
+     * Lista los proyectos con fecha de presentación futura, paginados de 6 en 6.
+     * También obtiene en una sola query los IDs de proyectos que el usuario
+     * autenticado ya tiene iniciados (registros en user_projects), para que
+     * la vista pueda marcar visualmente cada tarjeta sin hacer queries adicionales.
      */
     public function index()
     {
@@ -23,7 +23,13 @@ class ProjectController extends Controller
             ->orderBy('fecha_presentacion')
             ->paginate(6);
 
-        return view('Projects', compact('projects'));
+        // IDs de proyectos ya iniciados por el usuario actual (una sola query).
+        // Si no hay sesión activa, devuelve array vacío para evitar errores.
+        $iniciados = Auth::check()
+            ? Auth::user()->projects()->pluck('projects.id')->toArray()
+            : [];
+
+        return view('Projects', compact('projects', 'iniciados'));
     }
     /**
      * Muestra los detalles de un proyecto junto con los datos
@@ -77,5 +83,28 @@ class ProjectController extends Controller
         ]);
 
         return back()->with('status_updated', 'Estado actualizado correctamente.');
+    }
+
+
+    /**
+     * Inicia un proyecto para el usuario autenticado creando un registro
+     * en la tabla pivot user_projects con estado por defecto "Pendiente" (id 1).
+     *
+     * - Evita duplicados: si el usuario ya tiene el proyecto, no crea otro registro.
+     * - Redirige a los detalles del proyecto con un mensaje de confirmación.
+     */
+    public function project_create($id)
+    {
+        $proyecto = Project::findOrFail($id);
+
+        // Solo insertar si el usuario aún no tiene este proyecto iniciado
+        if (!$proyecto->users()->where('user_id', Auth::id())->exists()) {
+            $proyecto->users()->attach(Auth::id(), [
+                'project_status_id' => 2, // Estado inicial: en proceso 
+            ]);
+        }
+
+        return redirect()->route('project_details', $id)
+            ->with('status_updated', 'Proyecto añadido correctamente.');
     }
 }
