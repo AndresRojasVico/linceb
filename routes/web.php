@@ -11,9 +11,8 @@ Route::view('/', 'welcome')->name('home');
 
 
 Route::get('/team', function () {
-    echo 'estos son los miembros del equipo';
-    die();
-    return view('pages.team');
+
+    return view('team');
 })->name('team');
 
 

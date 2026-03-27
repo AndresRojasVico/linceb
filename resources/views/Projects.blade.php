@@ -10,14 +10,14 @@
                     <div class="flex items-end gap-2">
                         <flux:heading class="font-bold" size="lg">{{ auth()->user()->name }}</flux:heading>
                         @if(auth()->user()->role?->name == "Admin")
-                            <flux:text>{{ auth()->user()->role?->name }}</flux:text>
+                        <flux:text>{{ auth()->user()->role?->name }}</flux:text>
                         @endif
                     </div>
                     <flux:text class="mt-0">{{ auth()->user()->company?->name }}</flux:text>
                 </div>
             </div>
             <x-stat-card title="Tareas" value="{{ auth()->user()->tasks->count() }}" icon="clipboard-document-check" color="primary" nboton="Tareas" />
-            <x-stat-card title="Proyectos" value="{{ auth()->user()->projects->count() }}" icon="folder" color="primary" nboton="Proyectos" />
+            <livewire:stat-card-project />
         </div>
 
         {{-- Grid de tarjetas --}}
@@ -26,7 +26,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($projects as $project)
-                    <x-project-card :project="$project" :ya-iniciado="in_array($project->id, $iniciados)" />
+                <x-project-card :project="$project" :ya-iniciado="in_array($project->id, $iniciados)" />
                 @endforeach
             </div>
 

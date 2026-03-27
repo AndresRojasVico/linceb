@@ -1,40 +1,40 @@
 <x-layouts::app :title="__('Detalles del Proyecto')">
     @php
-        $diasRestantes = $proyecto->fecha_presentacion
-            ? (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($proyecto->fecha_presentacion), false)
-            : null;
-        $duracionTexto = null;
-        if ($proyecto->duracion_contrato) {
-            $unidad = match($proyecto->unidad_duracion ?? '') {
-                'ANN' => 'años', 'MON' => 'meses', 'DAY' => 'días',
-                default => $proyecto->unidad_duracion ?? '',
-            };
-            $duracionTexto = $proyecto->duracion_contrato . ' ' . $unidad;
-        }
-        $docsCount = collect([
-            $proyecto->enlace_perfil_contratante,
-            $proyecto->url_ppt,
-            $proyecto->link,
-            $proyecto->plataforma_origen,
-        ])->filter()->count();
+    $diasRestantes = $proyecto->fecha_presentacion
+    ? (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($proyecto->fecha_presentacion), false)
+    : null;
+    $duracionTexto = null;
+    if ($proyecto->duracion_contrato) {
+    $unidad = match($proyecto->unidad_duracion ?? '') {
+    'ANN' => 'años', 'MON' => 'meses', 'DAY' => 'días',
+    default => $proyecto->unidad_duracion ?? '',
+    };
+    $duracionTexto = $proyecto->duracion_contrato . ' ' . $unidad;
+    }
+    $docsCount = collect([
+    $proyecto->enlace_perfil_contratante,
+    $proyecto->url_ppt,
+    $proyecto->link,
+    $proyecto->plataforma_origen,
+    ])->filter()->count();
 
-        // Badge estado (igual lógica que project-card)
-        $estado = $proyecto->estado ?? 'ABIERTA';
-        $estadoClass = match(true) {
-            str_contains(strtolower($estado), 'adjudic') => 'bg-blue-100 text-blue-700',
-            str_contains(strtolower($estado), 'urgente') => 'bg-amber-100 text-amber-700',
-            default => 'bg-green-100 text-green-700',
-        };
+    // Badge estado (igual lógica que project-card)
+    $estado = $proyecto->estado ?? 'ABIERTA';
+    $estadoClass = match(true) {
+    str_contains(strtolower($estado), 'adjudic') => 'bg-blue-100 text-blue-700',
+    str_contains(strtolower($estado), 'urgente') => 'bg-amber-100 text-amber-700',
+    default => 'bg-green-100 text-green-700',
+    };
 
-        // Badge tipo contrato (igual lógica que project-card)
-        $tipo = strtolower($proyecto->tipo_contrato ?? '');
-        [$tipoColor, $tipoIcon] = match(true) {
-            str_contains($tipo, 'servicio')                                         => ['bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 'briefcase'],
-            str_contains($tipo, 'suministro')                                       => ['bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300', 'cube'],
-            str_contains($tipo, 'obra')                                             => ['bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300', 'wrench-screwdriver'],
-            str_contains($tipo, 'concesion') || str_contains($tipo, 'concesión')    => ['bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300', 'building-library'],
-            default                                                                  => ['bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300', 'tag'],
-        };
+    // Badge tipo contrato (igual lógica que project-card)
+    $tipo = strtolower($proyecto->tipo_contrato ?? '');
+    [$tipoColor, $tipoIcon] = match(true) {
+    str_contains($tipo, 'servicio') => ['bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 'briefcase'],
+    str_contains($tipo, 'suministro') => ['bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300', 'cube'],
+    str_contains($tipo, 'obra') => ['bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300', 'wrench-screwdriver'],
+    str_contains($tipo, 'concesion') || str_contains($tipo, 'concesión') => ['bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300', 'building-library'],
+    default => ['bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300', 'tag'],
+    };
     @endphp
 
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
@@ -50,10 +50,10 @@
                                 {{ strtoupper($estado) }}
                             </span>
                             @if($proyecto->tipo_contrato)
-                                <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full {{ $tipoColor }}">
-                                    <flux:icon :icon="$tipoIcon" class="size-3" />
-                                    {{ $proyecto->tipo_contrato }}
-                                </span>
+                            <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full {{ $tipoColor }}">
+                                <flux:icon :icon="$tipoIcon" class="size-3" />
+                                {{ $proyecto->tipo_contrato }}
+                            </span>
                             @endif
                             <span class="text-sm text-neutral-500">Expediente: {{ $proyecto->expediente ?? '—' }}</span>
                         </div>
@@ -65,9 +65,9 @@
                                 Presentar oferta
                             </flux:button>
                             @if($proyecto->url_ppt)
-                                <flux:button size="sm" href="{{ $proyecto->url_ppt }}" target="_blank">
-                                    Pliego
-                                </flux:button>
+                            <flux:button size="sm" href="{{ $proyecto->url_ppt }}" target="_blank">
+                                Pliego
+                            </flux:button>
                             @endif
                         </div>
                     </div>
@@ -82,23 +82,15 @@
 
                 <div class="p-6 border-r border-neutral-200 dark:border-neutral-700">
                     <p class="text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-4">Información económica</p>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-xs text-neutral-400 uppercase leading-tight mb-1">Licitación sin IVA</p>
-                            <p class="text-lg font-bold text-neutral-900 dark:text-white">
-                                {{ $proyecto->presupuesto_sin_impuestos ? number_format($proyecto->presupuesto_sin_impuestos, 2, ',', '.') : '—' }}
-                            </p>
-                            @if($proyecto->presupuesto_sin_impuestos)
-                                <p class="text-sm text-neutral-500">€</p>
-                            @endif
-                        </div>
+                    <div class="grid grid-cols-2 gap-4">
+
                         <div>
                             <p class="text-xs text-neutral-400 uppercase leading-tight mb-1">Presupuesto base sin IVA</p>
                             <p class="text-lg font-bold text-neutral-900 dark:text-white">
                                 {{ $proyecto->valor_estimado_total ? number_format($proyecto->valor_estimado_total, 2, ',', '.') : '—' }}
                             </p>
                             @if($proyecto->valor_estimado_total)
-                                <p class="text-sm text-neutral-500">€</p>
+                            <p class="text-sm text-neutral-500">€</p>
                             @endif
                         </div>
                         <div>
@@ -107,7 +99,7 @@
                                 {{ $proyecto->presupuesto_con_impuestos ? number_format($proyecto->presupuesto_con_impuestos, 2, ',', '.') : '—' }}
                             </p>
                             @if($proyecto->presupuesto_con_impuestos)
-                                <p class="text-sm text-neutral-500">€</p>
+                            <p class="text-sm text-neutral-500">€</p>
                             @endif
                         </div>
                     </div>
@@ -190,16 +182,16 @@
                         <div>
                             <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ $proyecto->organo_contratacion ?? '—' }}</p>
                             @if($proyecto->nif_organo_contratacion)
-                                <p class="text-xs text-neutral-500">NIF: {{ $proyecto->nif_organo_contratacion }}</p>
+                            <p class="text-xs text-neutral-500">NIF: {{ $proyecto->nif_organo_contratacion }}</p>
                             @endif
                         </div>
                     </div>
                     @if($proyecto->enlace_perfil_contratante)
-                        <a href="{{ $proyecto->enlace_perfil_contratante }}" target="_blank"
-                            class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline font-semibold uppercase tracking-wide">
-                            Ver perfil del contratante
-                            <flux:icon.arrow-top-right-on-square class="size-3" />
-                        </a>
+                    <a href="{{ $proyecto->enlace_perfil_contratante }}" target="_blank"
+                        class="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline font-semibold uppercase tracking-wide">
+                        Ver perfil del contratante
+                        <flux:icon.arrow-top-right-on-square class="size-3" />
+                    </a>
                     @endif
                 </div>
             </div>
@@ -224,10 +216,10 @@
                             <flux:icon.map-pin class="size-4 text-neutral-400 mt-0.5 shrink-0" />
                             <div>
                                 @if($proyecto->codigo_nuts)
-                                    <p class="text-xs text-neutral-400 mb-0.5">{{ $proyecto->codigo_nuts }}</p>
+                                <p class="text-xs text-neutral-400 mb-0.5">{{ $proyecto->codigo_nuts }}</p>
                                 @endif
                                 @if($proyecto->lugar_ejecucion)
-                                    <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ $proyecto->lugar_ejecucion }}</p>
+                                <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ $proyecto->lugar_ejecucion }}</p>
                                 @endif
                             </div>
                         </div>
@@ -241,32 +233,32 @@
                         <p class="text-xs font-semibold text-neutral-500 uppercase tracking-widest">Adjudicación</p>
                     </div>
                     @if($proyecto->empresa_adjudicataria || $proyecto->fecha_adjudicacion)
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p class="text-xs text-neutral-400 mb-0.5">Fecha</p>
-                                <p class="font-semibold text-neutral-800 dark:text-neutral-200">
-                                    {{ $proyecto->fecha_adjudicacion ? \Carbon\Carbon::parse($proyecto->fecha_adjudicacion)->format('d/m/Y') : '—' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-neutral-400 mb-0.5">Empresa</p>
-                                <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ $proyecto->empresa_adjudicataria ?? '—' }}</p>
-                            </div>
-                            @if($proyecto->importe_adjudicacion_sin_iva)
-                            <div>
-                                <p class="text-xs text-neutral-400 mb-0.5">Importe sin IVA</p>
-                                <p class="font-semibold text-amber-700 dark:text-amber-400">{{ number_format($proyecto->importe_adjudicacion_sin_iva, 2, ',', '.') }} €</p>
-                            </div>
-                            @endif
-                            @if($proyecto->importe_adjudicacion_con_iva)
-                            <div>
-                                <p class="text-xs text-neutral-400 mb-0.5">Importe con IVA</p>
-                                <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ number_format($proyecto->importe_adjudicacion_con_iva, 2, ',', '.') }} €</p>
-                            </div>
-                            @endif
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-neutral-400 mb-0.5">Fecha</p>
+                            <p class="font-semibold text-neutral-800 dark:text-neutral-200">
+                                {{ $proyecto->fecha_adjudicacion ? \Carbon\Carbon::parse($proyecto->fecha_adjudicacion)->format('d/m/Y') : '—' }}
+                            </p>
                         </div>
+                        <div>
+                            <p class="text-xs text-neutral-400 mb-0.5">Empresa</p>
+                            <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ $proyecto->empresa_adjudicataria ?? '—' }}</p>
+                        </div>
+                        @if($proyecto->importe_adjudicacion_sin_iva)
+                        <div>
+                            <p class="text-xs text-neutral-400 mb-0.5">Importe sin IVA</p>
+                            <p class="font-semibold text-amber-700 dark:text-amber-400">{{ number_format($proyecto->importe_adjudicacion_sin_iva, 2, ',', '.') }} €</p>
+                        </div>
+                        @endif
+                        @if($proyecto->importe_adjudicacion_con_iva)
+                        <div>
+                            <p class="text-xs text-neutral-400 mb-0.5">Importe con IVA</p>
+                            <p class="font-semibold text-neutral-800 dark:text-neutral-200">{{ number_format($proyecto->importe_adjudicacion_con_iva, 2, ',', '.') }} €</p>
+                        </div>
+                        @endif
+                    </div>
                     @else
-                        <p class="text-xs text-neutral-400 italic leading-relaxed">Se actualizará tras la resolución del órgano de contratación y la publicación de la adjudicación.</p>
+                    <p class="text-xs text-neutral-400 italic leading-relaxed">Se actualizará tras la resolución del órgano de contratación y la publicación de la adjudicación.</p>
                     @endif
                 </div>
             </div>
@@ -334,7 +326,7 @@
                         </div>
                         @endif
                         @if($docsCount === 0)
-                            <p class="text-sm text-neutral-400 italic">No hay documentación relacionada disponible.</p>
+                        <p class="text-sm text-neutral-400 italic">No hay documentación relacionada disponible.</p>
                         @endif
                     </div>
 

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Models\UserProjectFavorite;
 
 class ProjectController extends Controller
 {
@@ -103,6 +104,11 @@ class ProjectController extends Controller
                 'project_status_id' => 2, // Estado inicial: en proceso 
             ]);
         }
+
+        // Al iniciar el proyecto, lo quitamos de favoritos automáticamente
+        UserProjectFavorite::where('user_id', Auth::id())
+            ->where('project_id', $id)
+            ->delete();
 
         return redirect()->route('project_details', $id)
             ->with('status_updated', 'Proyecto añadido correctamente.');

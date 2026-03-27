@@ -3,7 +3,7 @@
 <div class="relative flex flex-col justify-between rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5 shadow-sm hover:shadow-md transition">
 
     {{-- Cabecera: badge + bookmark --}}
-    <div class="flex items-start justify-between mb-3">
+    <div class="flex items-start justify-between mb-4">
         <span class="text-xs font-bold uppercase tracking-wide px-2 py-1 rounded-full
             {{ match(true) {
                 str_contains(strtolower($project->estado ?? ''), 'adjudic') => 'bg-blue-100 text-blue-700',
@@ -31,6 +31,11 @@
         @else
         <flux:icon.bookmark class="size-5 text-neutral-300 hover:text-neutral-500 cursor-pointer" />
         @endif
+        {{-- Sustituimos el icono estático por el componente Livewire ToggleFavorite --}}
+        {{-- :project-id="$project->id" → le pasamos el id del proyecto como prop --}}
+        {{-- :key="'fav-'.$project->id" → necesario cuando el componente está dentro de un bucle,
+             garantiza que cada instancia de Livewire sea única y no se mezclen estados --}}
+        <livewire:toggle-favorite :project-id="$project->id" :key="'fav-'.$project->id" />
 
     </div>
 
@@ -63,7 +68,7 @@
     {{-- $yaIniciado viene del controlador: true si el usuario ya tiene este proyecto en user_projects --}}
     <div class="flex items-center gap-2">
         @if($yaIniciado)
-        {{-- Proyecto ya iniciado: botón deshabilitado con icono rojo --}}
+
         <flux:button variant="primary" size="sm" class="flex-1" disabled>
 
             Proyecto ya iniciado
