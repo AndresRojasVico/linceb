@@ -21,7 +21,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::where('fecha_presentacion', '>=', now())
-            ->orderBy('fecha_presentacion')
+            ->orderBy('fecha_publicacion', 'desc')
             ->paginate(6);
 
         // IDs de proyectos ya iniciados por el usuario actual (una sola query).
@@ -38,7 +38,7 @@ class ProjectController extends Controller
      *
      * - Busca el proyecto por ID; devuelve 404 si no existe.
      * - Recupera el registro pivot del usuario actual para ese proyecto,
-     *   incluyendo su estado y notas.
+     *   incluyendo su estado de trabajo de usuario.
      * - Carga todos los estados posibles para el desplegable de la vista.
      */
     public function project_details($id)

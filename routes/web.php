@@ -4,17 +4,23 @@ use App\Http\Controllers\filecontroller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TeamController;
 use App\Models\Project;
 use App\Models\UserProject;
 
 Route::view('/', 'welcome')->name('home');
 
 
-Route::get('/team', function () {
 
-    return view('team');
-})->name('team');
 
+
+Route::get('/team', [TeamController::class, 'index'])->name('index')->middleware('auth');
+
+Route::get('/team-add', function () {
+    return view('team.add');
+})->name('team-add');
+
+Route::post('/team-store', [TeamController::class, 'store'])->name('team-store')->middleware('auth');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -35,6 +41,7 @@ Route::get('/files', function () {
 })->name('files')->middleware('auth');
 
 Route::get('/files/update', [filecontroller::class, 'updateDatabase'])->name('files.update')->middleware('auth');
+
 
 
 

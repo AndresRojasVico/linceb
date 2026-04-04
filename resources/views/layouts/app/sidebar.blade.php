@@ -29,7 +29,7 @@
                     :current="request()->routeIs('Projects')" wire:navigate>
                     {{ __('Tareas pendientes') }}
                 </flux:sidebar.item>
-                <flux:sidebar.item icon="users" :href="route('team')" :current="request()->routeIs('team')"
+                <flux:sidebar.item icon="users" :href="route('index')" :current="request()->routeIs('team')"
                     wire:navigate>
                     {{ __('Equipo') }}
                 </flux:sidebar.item>

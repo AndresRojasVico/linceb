@@ -61,9 +61,16 @@
                         <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mb-4">{{ $proyecto->sumario ?? 'Proyecto sin sumario' }}</h1>
 
                         <div class="flex items-center gap-2">
-                            <flux:button variant="primary" size="sm">
-                                Presentar oferta
+                            @if($userProject)
+                            <flux:button variant="primary" size="sm" disabled>
+                                Proyecto ya iniciado
                             </flux:button>
+                        @else
+                            <flux:button href="{{ route('project_create', $proyecto->id) }}" variant="primary" size="sm">
+                                Iniciar proyecto
+                            </flux:button>
+                        @endif
+
                             @if($proyecto->url_ppt)
                             <flux:button size="sm" href="{{ $proyecto->url_ppt }}" target="_blank">
                                 Pliego

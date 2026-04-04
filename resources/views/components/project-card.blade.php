@@ -1,4 +1,5 @@
-@props(['project', 'yaIniciado' => false])
+@props(['project',
+'yaIniciado' => false])
 
 <div class="relative flex flex-col justify-between rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-5 shadow-sm hover:shadow-md transition">
 
@@ -31,7 +32,7 @@
         @else
         <flux:icon.bookmark class="size-5 text-neutral-300 hover:text-neutral-500 cursor-pointer" />
         @endif
-        {{-- Sustituimos el icono estático por el componente Livewire ToggleFavorite --}}
+
         {{-- :project-id="$project->id" → le pasamos el id del proyecto como prop --}}
         {{-- :key="'fav-'.$project->id" → necesario cuando el componente está dentro de un bucle,
              garantiza que cada instancia de Livewire sea única y no se mezclen estados --}}
