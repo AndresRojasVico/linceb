@@ -1,0 +1,86 @@
+services:
+
+  # ── PHP-FPM Application ────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linceb_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - storage_data:/var/www/storage/app
+      - ./.env:/var/www/.env:ro
+    networks:
+      - linceb_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Nginx Web Server ───────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: linceb_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./public:/var/www/public:ro
+      - storage_data:/var/www/storage/app:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - linceb_network
+    depends_on:
+      - app
+
+  # ── MySQL Database ─────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: linceb_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - linceb_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Queue Worker ───────────────────────────────────────────────────────────
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linceb_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    entrypoint: ["/bin/sh", "-c", "sleep 10 && php artisan queue:work --sleep=3 --tries=3 --timeout=90"]
+    volumes:
+      - storage_data:/var/www/storage/app
+      - ./.env:/var/www/.env:ro
+    networks:
+      - linceb_network
+    depends_on:
+      - app
+      - db
+
+# ── Volumes ────────────────────────────────────────────────────────────────────
+volumes:
+  db_data:
+    driver: local
+  storage_data:
+    driver: local
+
+# ── Networks ───────────────────────────────────────────────────────────────────
+networks:
+  linceb_network:
+    driver: bridge

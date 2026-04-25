@@ -1,0 +1,50 @@
+# Git
+.git
+.github
+.gitignore
+.gitattributes
+
+# Dependencias (se instalan en el build)
+vendor/
+node_modules/
+
+# Variables de entorno locales
+.env
+.env.local
+.env.*.local
+
+# Cache y logs de desarrollo
+storage/logs/*.log
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+# Assets sin compilar (se compilan en el build)
+resources/css/
+resources/js/
+
+# Archivos de desarrollo
+*.test
+*.spec
+tests/
+playwright-audit.cjs
+
+# Docker (no incluir en la imagen)
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# IDE y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.ai
+*.dia
+*.dia~
+*.dia.autosave
+
+# Docs
+docs/
+README.md
+CLAUDE.md
