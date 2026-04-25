@@ -45,15 +45,15 @@ return new class extends Migration {
             $table->dateTime('fecha_solicitud')->nullable();
             $table->dateTime('fecha_publicacion')->nullable();
             $table->string('directiva_aplicacion', 255)->nullable();
-            $table->string('financiacion_europea', 100)->nullable();
+            $table->text('financiacion_europea')->nullable();
             $table->text('descripcion_financiacion')->nullable();
             $table->string('url_ppt', 500)->nullable();
             $table->boolean('subcontratacion_permitido')->nullable();
             $table->decimal('subcontratacion_porcentaje', 5, 2)->nullable();
             // Adjudicación
             $table->date('fecha_adjudicacion')->nullable();
-            $table->string('empresa_adjudicataria', 255)->nullable();
-            $table->string('nif_adjudicatario', 50)->nullable();
+            $table->text('empresa_adjudicataria')->nullable();
+            $table->text('nif_adjudicatario')->nullable();
             $table->decimal('importe_adjudicacion_sin_iva', 15, 2)->nullable();
             $table->decimal('importe_adjudicacion_con_iva', 15, 2)->nullable();
             $table->unsignedSmallInteger('num_ofertas')->nullable();

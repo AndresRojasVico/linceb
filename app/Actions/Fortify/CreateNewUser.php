@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Role;
 use App\Rules\ValidNif;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -33,11 +34,14 @@ class CreateNewUser implements CreatesNewUsers
             'nif' => $input['nif'],
         ]);
 
+        $adminRole = Role::where('name', 'Admin')->first();
+
         return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
+            'name'       => $input['name'],
+            'email'      => $input['email'],
+            'password'   => $input['password'],
             'company_id' => $company->id,
+            'role_id'    => $adminRole?->id,
         ]);
 
 

@@ -20,17 +20,7 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::where('fecha_presentacion', '>=', now())
-            ->orderBy('fecha_publicacion', 'desc')
-            ->paginate(6);
-
-        // IDs de proyectos ya iniciados por el usuario actual (una sola query).
-        // Si no hay sesión activa, devuelve array vacío para evitar errores.
-        $iniciados = Auth::check()
-            ? Auth::user()->projects()->pluck('projects.id')->toArray()
-            : [];
-
-        return view('Projects', compact('projects', 'iniciados'));
+        return view('Projects');
     }
     /**
      * Muestra los detalles de un proyecto junto con los datos
@@ -56,7 +46,55 @@ class ProjectController extends Controller
         // Estados disponibles para el selector de la vista
         $statuses = ProjectStatus::all();
 
-        return view('projectDetails', compact('proyecto', 'userProject', 'statuses'));
+        // Badge estado
+        $estado = $proyecto->estado ?? 'ABIERTA';
+        $estadoClass = match (true) {
+            str_contains(strtolower($estado), 'adjudic') => 'bg-blue-100 text-blue-700',
+            str_contains(strtolower($estado), 'urgente') => 'bg-amber-100 text-amber-700',
+            default => 'bg-green-100 text-green-700',
+        };
+
+        // Badge tipo contrato
+        $tipo = strtolower($proyecto->tipo_contrato ?? '');
+        [$tipoColor, $tipoIcon] = match (true) {
+            str_contains($tipo, 'servicio')   => ['bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', 'briefcase'],
+            str_contains($tipo, 'suministro') => ['bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300', 'cube'],
+            str_contains($tipo, 'obra')       => ['bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300', 'wrench-screwdriver'],
+            str_contains($tipo, 'concesion') || str_contains($tipo, 'concesión') => ['bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300', 'building-library'],
+            default => ['bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300', 'tag'],
+        };
+
+        // Duración legible
+        $duracionTexto = null;
+        if ($proyecto->duracion_contrato) {
+            $unidad = match ($proyecto->unidad_duracion ?? '') {
+                'ANN' => 'años',
+                'MON' => 'meses',
+                'DAY' => 'días',
+                default => $proyecto->unidad_duracion ?? '',
+            };
+            $duracionTexto = $proyecto->duracion_contrato . ' ' . $unidad;
+        }
+
+        // Contador de documentos disponibles
+        $docsCount = collect([
+            $proyecto->enlace_perfil_contratante,
+            $proyecto->url_ppt,
+            $proyecto->link,
+            $proyecto->plataforma_origen,
+        ])->filter()->count();
+
+        return view('projectDetails', compact(
+            'proyecto',
+            'userProject',
+            'statuses',
+            'estado',
+            'estadoClass',
+            'tipoColor',
+            'tipoIcon',
+            'duracionTexto',
+            'docsCount'
+        ));
     }
 
     /**
@@ -112,5 +150,33 @@ class ProjectController extends Controller
 
         return redirect()->route('project_details', $id)
             ->with('status_updated', 'Proyecto añadido correctamente.');
+    }
+
+
+    public function project_drop($id)
+    {
+        $proyecto = Project::findOrFail($id);
+
+        // Eliminar la relación del usuario con el proyecto
+        $proyecto->users()->detach(Auth::id());
+
+        return redirect()->route('project_details', $id)
+            ->with('status_updated', 'Has soltado el proyecto correctamente.');
+    }
+
+
+
+
+    /**
+     * Muestra los proyectos marcados como favoritos por el usuario autenticado.
+     *
+     * - Filtra los registros de user_project_favorites del usuario actual.
+     * - Carga el Project asociado en la misma query (eager loading) para evitar N+1.
+     * - Extrae solo los objetos Project de la colección de favoritos.
+     * - Pasa la colección a la vista 'favorites'.
+     */
+    public function favorites()
+    {
+        return view('ProjectFavorites');
     }
 }

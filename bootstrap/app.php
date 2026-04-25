@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Registramos el alias aquí:
         $middleware->alias([
             'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

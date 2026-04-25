@@ -40,7 +40,7 @@ new class extends Component
                 <flux:text class="font-extrabold text-2xl text-green-500">
                     {{ $projectCount }}
             </div>
-            <flux:button size="xs" variant="primary">Proyectos</flux:button>
+            <flux:button size="xs" variant="primary" href="{{ route('dashboard') }}">Proyectos</flux:button>
         </div>
 
         <div class="flex flex-col gap-1">
@@ -50,7 +50,7 @@ new class extends Component
                     {{ $favoritesCount }}
                 </flux:text>
             </div>
-            <flux:button size="xs" variant="primary">Favoritos</flux:button>
+            <flux:button size="xs" variant="primary" href="{{ route('favorites') }}">Favoritos</flux:button>
         </div>
 
     </div>

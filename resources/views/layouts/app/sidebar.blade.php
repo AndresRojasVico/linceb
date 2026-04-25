@@ -29,10 +29,14 @@
                     :current="request()->routeIs('Projects')" wire:navigate>
                     {{ __('Tareas pendientes') }}
                 </flux:sidebar.item>
+
+
+                @if (Auth::user()->role?->name === 'Admin')
                 <flux:sidebar.item icon="users" :href="route('index')" :current="request()->routeIs('team')"
                     wire:navigate>
                     {{ __('Equipo') }}
                 </flux:sidebar.item>
+                @endif
             </flux:sidebar.group>
         </flux:sidebar.nav>
 
@@ -41,10 +45,7 @@
         <flux:sidebar.nav>
 
 
-            <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire"
-                target="_blank">
-                {{ __('Documentation') }}
-            </flux:sidebar.item>
+
         </flux:sidebar.nav>
 
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />

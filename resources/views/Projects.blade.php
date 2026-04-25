@@ -20,20 +20,10 @@
             <livewire:stat-card-project />
         </div>
 
-        {{-- Grid de tarjetas --}}
+        {{-- Buscador + grid de tarjetas --}}
         <div class="p-4 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <flux:heading class="mb-4">Proyectos en plazo</flux:heading>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach ($projects as $project)
-                <x-project-card :project="$project" :ya-iniciado="in_array($project->id, $iniciados)" />
-                @endforeach
-            </div>
-
-            {{-- Paginación --}}
-            <div class="mt-6">
-                {{ $projects->links() }}
-            </div>
+            <flux:heading class="mb-4">Proyectos</flux:heading>
+            <livewire:project-search />
         </div>
 
     </div>

@@ -14,13 +14,13 @@ Route::view('/', 'welcome')->name('home');
 
 
 
-Route::get('/team', [TeamController::class, 'index'])->name('index')->middleware('auth');
+Route::get('/team', [TeamController::class, 'index'])->name('index')->middleware(['auth', 'admin']);
 
 Route::get('/team-add', function () {
     return view('team.add');
-})->name('team-add');
+})->name('team-add')->middleware(['auth', 'admin']);
 
-Route::post('/team-store', [TeamController::class, 'store'])->name('team-store')->middleware('auth');
+Route::post('/team-store', [TeamController::class, 'store'])->name('team-store')->middleware(['auth', 'admin']);
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -51,7 +51,7 @@ Route::get('/seachProject', function () {
 })->name('seachProject')->middleware('auth');
 
 
-Route::post('/files/upload', [filecontroller::class, 'upload'])->name('files.upload');
+Route::post('/files/upload', [filecontroller::class, 'upload'])->name('files.upload')->middleware('auth');
 
 Route::get('/project_details/{id}', [ProjectController::class, 'project_details'])->name('project_details')->middleware('auth');
 Route::patch('/project_details/{id}/status', [ProjectController::class, 'update_status'])->name('project_details.status')->middleware('auth');

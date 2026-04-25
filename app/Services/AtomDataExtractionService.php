@@ -367,10 +367,9 @@ class AtomDataExtractionService
             ?: $link;
 
         // Plataforma de origen: AgentParty presente en PlataformasAgregadas, ausente en Completo3
-        $agentParty = $party->children($ns['cac'] ?? '')->AgentParty ?? null;
-        $agentName  = $agentParty
-            ? (string) $agentParty->children($ns['cac'] ?? '')->PartyName->children($ns['cbc'] ?? '')->Name
-            : '';
+        $agentParty = $party->children($ns['cac'] ?? '')->AgentParty;
+        $agentPartyName = $agentParty ? $agentParty->children($ns['cac'] ?? '')->PartyName : null;
+        $agentName = $agentPartyName ? (string) $agentPartyName->children($ns['cbc'] ?? '')->Name : '';
         $plataformaOrigen = $agentName ?: 'PLACSP';
 
         // --- TenderingTerms ---
@@ -632,9 +631,11 @@ class AtomDataExtractionService
     }
 
     /**
-     * Extrae los datos de adjudicación del TenderResult.
-     * En PlataformasAgregadas el contrato suele estar en estado EV y este nodo está ausente;
-     * en ese caso todos los valores devueltos serán null.
+     * Extrae los datos de adjudicación de TODOS los nodos TenderResult del contrato.
+     * Un contrato con lotes tiene un TenderResult por lote; los importes se suman
+     * y las empresas/NIFs se concatenan con ' / '.
+     * En PlataformasAgregadas el contrato suele estar en estado EV y este nodo está
+     * ausente; en ese caso todos los valores devueltos serán null.
      */
     private function extractTenderResult(\SimpleXMLElement $cfs, array $ns): array
     {
@@ -649,68 +650,105 @@ class AtomDataExtractionService
             'pyme'               => null,
         ];
 
-        $tr        = $cfs->children($ns['cac'] ?? '')->TenderResult ?? null;
-        $trCbc     = $tr ? $tr->children($ns['cbc'] ?? '') : null;
-        $awardDate = $trCbc ? (string) $trCbc->AwardDate : '';
-        if (!$tr || $awardDate === '') {
+        $empresas      = [];
+        $nifs          = [];
+        $importeSinIva = 0.0;
+        $importeConIva = 0.0;
+        $hasImporteSin = false;
+        $hasImporteCon = false;
+
+        foreach ($cfs->children($ns['cac'] ?? '') as $nodeName => $tr) {
+            if ($nodeName !== 'TenderResult') {
+                continue;
+            }
+
+            $trCbc     = $tr->children($ns['cbc'] ?? '');
+            $awardDate = (string) $trCbc->AwardDate;
+            if ($awardDate === '') {
+                continue;
+            }
+
+            // Fecha, cantidades y flag pyme: del primer TenderResult válido
+            if ($result['fecha_adjudicacion'] === null) {
+                $result['fecha_adjudicacion'] = $awardDate;
+
+                $qty = (string) $trCbc->ReceivedTenderQuantity;
+                $result['num_ofertas'] = is_numeric($qty) ? (int) $qty : null;
+
+                $qtyPyme = (string) $trCbc->SMEsReceivedTenderQuantity;
+                $result['num_ofertas_pyme'] = is_numeric($qtyPyme) ? (int) $qtyPyme : null;
+
+                $pymeRaw = (string) $trCbc->SMEAwardedIndicator;
+                $result['pyme'] = $pymeRaw !== '' ? filter_var($pymeRaw, FILTER_VALIDATE_BOOLEAN) : null;
+            }
+
+            // Iterar todas las WinningParty del lote (soporta UTE y multi-lote)
+            foreach ($tr->children($ns['cac'] ?? '') as $wpName => $winningParty) {
+                if ($wpName !== 'WinningParty') {
+                    continue;
+                }
+
+                $empresa = (string) $winningParty
+                    ->children($ns['cac'] ?? '')->PartyName
+                    ->children($ns['cbc'] ?? '')->Name
+                    ?: null;
+                if ($empresa !== null) {
+                    $empresas[] = $empresa;
+                }
+
+                // Buscar NIF entre los PartyIdentification
+                $nifFound = null;
+                foreach ($winningParty->children($ns['cac'] ?? '') as $piName => $piNode) {
+                    if ($piName !== 'PartyIdentification') {
+                        continue;
+                    }
+                    $idNode = $piNode->children($ns['cbc'] ?? '')->ID;
+                    $scheme = strtolower((string) ($idNode->attributes()['schemeName'] ?? ''));
+                    if ($scheme === 'nif') {
+                        $nifFound = (string) $idNode;
+                        break;
+                    }
+                }
+                // Fallback: primer identificador disponible si no hay NIF explícito
+                if ($nifFound === null) {
+                    $nifFound = ((string) $winningParty
+                        ->children($ns['cac'] ?? '')->PartyIdentification
+                        ->children($ns['cbc'] ?? '')->ID) ?: null;
+                }
+                if ($nifFound !== null) {
+                    $nifs[] = $nifFound;
+                }
+            }
+
+            // Importes del lote — se acumulan si hay varios lotes
+            $awardedProject = $tr->children($ns['cac'] ?? '')->AwardedTenderedProject;
+            $legalMonetary  = $awardedProject ? $awardedProject->children($ns['cac'] ?? '')->LegalMonetaryTotal : null;
+
+            if ($legalMonetary !== null && $legalMonetary->count() > 0) {
+                $monetaryCbc = $legalMonetary->children($ns['cbc'] ?? '');
+
+                $sin = $this->parseAmount((string) $monetaryCbc->TaxExclusiveAmount);
+                $con = $this->parseAmount((string) $monetaryCbc->PayableAmount);
+
+                if ($sin !== null) {
+                    $importeSinIva += $sin;
+                    $hasImporteSin  = true;
+                }
+                if ($con !== null) {
+                    $importeConIva += $con;
+                    $hasImporteCon  = true;
+                }
+            }
+        }
+
+        if ($result['fecha_adjudicacion'] === null) {
             return $result;
         }
 
-        $result['fecha_adjudicacion'] = $awardDate;
-
-        $qty = (string) $trCbc->ReceivedTenderQuantity;
-        $result['num_ofertas'] = is_numeric($qty) ? (int) $qty : null;
-
-        $qtyPyme = (string) $trCbc->SMEsReceivedTenderQuantity;
-        $result['num_ofertas_pyme'] = is_numeric($qtyPyme) ? (int) $qtyPyme : null;
-
-        $pymeRaw = (string) $trCbc->SMEAwardedIndicator;
-        $result['pyme'] = $pymeRaw !== '' ? filter_var($pymeRaw, FILTER_VALIDATE_BOOLEAN) : null;
-
-        // Empresa adjudicataria
-        $winningParty = $tr->children($ns['cac'] ?? '')->WinningParty ?? null;
-        if ($winningParty) {
-            $wpPartyName = $winningParty->children($ns['cac'] ?? '')->PartyName ?? null;
-            $wpNameCbc   = $wpPartyName ? $wpPartyName->children($ns['cbc'] ?? '') : null;
-            $result['empresa'] = $wpNameCbc ? ((string) $wpNameCbc->Name ?: null) : null;
-
-            // Buscar NIF específicamente entre los PartyIdentification del adjudicatario
-            foreach ($winningParty->children($ns['cac'] ?? '') as $nodeName => $piNode) {
-                if ($nodeName !== 'PartyIdentification') {
-                    continue;
-                }
-                $cbcChildren = $piNode->children($ns['cbc'] ?? '');
-                if ($cbcChildren === null) {
-                    continue;
-                }
-                $idNode = $cbcChildren->ID;
-                if ($idNode === null) {
-                    continue;
-                }
-                $scheme = strtolower((string) ($idNode->attributes()['schemeName'] ?? ''));
-                if ($scheme === 'nif') {
-                    $result['nif'] = (string) $idNode;
-                    break;
-                }
-            }
-            // Fallback: primer identificador disponible si no hay NIF
-            if ($result['nif'] === null) {
-                $piFirst    = $winningParty->children($ns['cac'] ?? '')->PartyIdentification ?? null;
-                $piFirstCbc = $piFirst ? $piFirst->children($ns['cbc'] ?? '') : null;
-                $result['nif'] = $piFirstCbc ? ((string) $piFirstCbc->ID ?: null) : null;
-            }
-        }
-
-        // Importes adjudicados
-        $awardedProject = $tr->children($ns['cac'] ?? '')->AwardedTenderedProject ?? null;
-        $monetary       = $awardedProject ? $awardedProject->children($ns['cac'] ?? '')->LegalMonetaryTotal ?? null : null;
-        if ($monetary) {
-            $monetaryCbc = $monetary->children($ns['cbc'] ?? '');
-            if ($monetaryCbc) {
-                $result['importe_sin_iva'] = $this->parseAmount((string) $monetaryCbc->TaxExclusiveAmount);
-                $result['importe_con_iva'] = $this->parseAmount((string) $monetaryCbc->PayableAmount);
-            }
-        }
+        $result['empresa']         = $empresas ? implode(' / ', array_unique($empresas)) : null;
+        $result['nif']             = $nifs     ? implode(' / ', array_unique($nifs))     : null;
+        $result['importe_sin_iva'] = $hasImporteSin ? $importeSinIva : null;
+        $result['importe_con_iva'] = $hasImporteCon ? $importeConIva : null;
 
         return $result;
     }
