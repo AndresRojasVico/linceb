@@ -10,4 +10,3 @@ Route::get('/', function () {
 
 
 
-require __DIR__ . '/settings.php';
