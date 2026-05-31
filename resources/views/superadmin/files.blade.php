@@ -11,7 +11,7 @@
                     <div class=" flex items-end gap-2">
                         <flux:heading ing class="font-bold" size="lg">{{ auth()->user()->name }}</flux:heading>
                         @if(auth()->user()->role?->name == "Admin")
-                            <flux:text>{{auth()->user()->role?->name }}</flux:text>
+                        <flux:text>{{auth()->user()->role?->name }}</flux:text>
                         @endif
                     </div>
 
@@ -52,22 +52,22 @@
                         <span id="file-name" class="text-sm text-gray-500">Ningún archivo seleccionado</span>
                     </div>
                     <br>
-                    <flux:button type="submit">Subir fichero</flux:button>
+                    <flux:button type="submit">Subir ficheross</flux:button>
                     <flux:button href="{{ route('files.update') }}">Actualizar base de datos</flux:button>
                 </form>
             </flux:field>
 
             @if(session('success'))
-                <div
-                    class="mt-4 p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400">
-                    {{ session('success') }}
-                </div>
+            <div
+                class="mt-4 p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400">
+                {{ session('success') }}
+            </div>
             @endif
 
             @if(session('error'))
-                <div class="mt-4 p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
-                    {{ session('error') }}
-                </div>
+            <div class="mt-4 p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
+                {{ session('error') }}
+            </div>
             @endif
         </div>
     </div>
