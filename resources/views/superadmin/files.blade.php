@@ -46,8 +46,11 @@
                 <form action="{{ route('files.upload') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <label class="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
-                    <input type="file" name="atom_file" accept=".atom"
-                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
+                    <div class="flex items-center gap-3">
+                        <input type="file" name="atom_file" accept=".atom" id="atom_file_input" class="hidden" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : 'Ningún archivo seleccionado'" />
+                        <flux:button type="button" onclick="document.getElementById('atom_file_input').click()">Buscar fichero</flux:button>
+                        <span id="file-name" class="text-sm text-gray-500">Ningún archivo seleccionado</span>
+                    </div>
                     <br>
                     <flux:button type="submit">Subir fichero</flux:button>
                     <flux:button href="{{ route('files.update') }}">Actualizar base de datos</flux:button>
