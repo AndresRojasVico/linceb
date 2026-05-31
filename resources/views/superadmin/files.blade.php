@@ -45,7 +45,9 @@
             <flux:field>
                 <form action="{{ route('files.upload') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <flux:input type="file" name="atom_file" label="Attachments" accept=".atom" />
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
+                    <input type="file" name="atom_file" accept=".atom"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />
                     <br>
                     <flux:button type="submit">Subir fichero</flux:button>
                     <flux:button href="{{ route('files.update') }}">Actualizar base de datos</flux:button>
