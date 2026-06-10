@@ -52,7 +52,7 @@
                         <span id="file-name" class="text-sm text-gray-500">Ningún archivo seleccionado</span>
                     </div>
                     <br>
-                    <flux:button type="submit">Subir ficherosss</flux:button>
+                    <flux:button type="submit">Subir ficheros</flux:button>
                     <flux:button href="{{ route('files.update') }}">Actualizar base de datos</flux:button>
                 </form>
             </flux:field>
